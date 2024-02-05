@@ -5,17 +5,21 @@
 //
 
 import Foundation
+import UIKit
 
 class AlertPresenter {
     
     weak var delegate: AlertPresenterDelegate?
     
-    func createAlert(correct: Int, total: Int, message: String) -> AlertModel {
-        let alertModel = AlertModel(
-            title: "Этот раунд окончен!",
-            text: message,
-            buttonText: "Сыграть еще раз")
-        return alertModel
+    func showAlert(controller: UIViewController, alertModel: AlertModel) {
+        
+        let alert = UIAlertController(title: alertModel.title, message: alertModel.text, preferredStyle: .alert)
+        
+        let action = UIAlertAction(title: alertModel.buttonText, style: .default) { _ in
+            alertModel.completion!()
+        }
+        
+        alert.addAction(action)
+        controller.present(alert, animated: true, completion: nil)
     }
-    
 }

@@ -24,41 +24,36 @@ final class StatisticServiceImplementation: StatisticService {
     
     private let userDefaults = UserDefaults.standard
     
-    var totalAccuracy: Double {
+    var correct: Double {
         get {
-            guard let data = userDefaults.data(forKey: Keys.total.rawValue),
-                  let totalAcc = try? JSONDecoder().decode(Double.self, from: data) else {
-                return 0.0
-            }
-            
-            return totalAcc
+            userDefaults.double(forKey: Keys.correct.rawValue)
         }
         set {
-            guard let data = try? JSONEncoder().encode(newValue) else {
-                print("Невозможно сохранить результат")
-                return
-            }
-            
-            userDefaults.set(data, forKey: Keys.total.rawValue)
+            userDefaults.set(newValue, forKey: Keys.correct.rawValue)
         }
+    }
+    var total: Double {
+        get {
+            userDefaults.double(forKey: Keys.total.rawValue)
+        }
+        set {
+            userDefaults.set(newValue, forKey: Keys.total.rawValue)
+        }
+    }
+    // Расчет точности исходя из истории игр
+    var totalAccuracy: Double {
+        get {
+            totalAmount != 0 ? Double(totalCorrectAnswers) / Double(totalAmount) *  100 : 0
+        }
+        
     }
     
     var gamesCount: Int {
         get {
-            guard let data = userDefaults.data(forKey: Keys.gamesCount.rawValue),
-                  let count = try? JSONDecoder().decode(Int.self, from: data) else {
-                return 0
-            }
-            
-            return count
+            userDefaults.integer(forKey: Keys.gamesCount.rawValue)
         }
         set {
-            guard let data = try? JSONEncoder().encode(newValue) else {
-                print("Невозможно сохранить результат")
-                return
-            }
-            
-            userDefaults.set(data, forKey: Keys.gamesCount.rawValue)
+            userDefaults.set(newValue, forKey: Keys.gamesCount.rawValue)
         }
     }
     
@@ -80,40 +75,26 @@ final class StatisticServiceImplementation: StatisticService {
         }
     }
     var totalCorrectAnswers: Int {
+        
         get {
-            guard let data = userDefaults.data(forKey: Keys.totalCorrectAnswers.rawValue),
-                  let count = try? JSONDecoder().decode(Int.self, from: data) else {
-                return 0
-            }
-            
-            return count
+            userDefaults.integer(forKey: Keys.totalCorrectAnswers.rawValue)
         }
+        
+        
         set {
-            guard let data = try? JSONEncoder().encode(newValue) else {
-                print("Невозможно сохранить результат")
-                return
-            }
-            
-            userDefaults.set(data, forKey: Keys.totalCorrectAnswers.rawValue)
+            userDefaults.set(newValue, forKey: Keys.totalCorrectAnswers.rawValue)
         }
+        
     }
     
     var totalAmount: Int {
         get {
-            guard let data = userDefaults.data(forKey: Keys.totalAmount.rawValue),
-                  let count = try? JSONDecoder().decode(Int.self, from: data) else {
-                return 0
-            }
-            
-            return count
+            userDefaults.integer(forKey: Keys.totalAmount.rawValue)
         }
+        
+        
         set {
-            guard let data = try? JSONEncoder().encode(newValue) else {
-                print("Невозможно сохранить результат")
-                return
-            }
-            
-            userDefaults.set(data, forKey: Keys.totalAmount.rawValue)
+            userDefaults.set(newValue, forKey: Keys.totalAmount.rawValue)
         }
     }
     
@@ -127,8 +108,6 @@ final class StatisticServiceImplementation: StatisticService {
         totalCorrectAnswers += count
         totalAmount += amount
         
-        // Расчет точности исходя из истории игр
-        totalAccuracy = Double(totalCorrectAnswers) / Double(totalAmount) * 100
     }
     
 }

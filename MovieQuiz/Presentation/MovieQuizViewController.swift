@@ -1,6 +1,7 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, AlertPresenterDelegate {
+final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate /*, AlertPresenterDelegate*/ {
+    
     
     
     // MARK: - IB Outlets
@@ -23,11 +24,9 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     private let questionFactory: QuestionFactoryProtocol = QuestionFactory()
     private var currentQuestion: QuizQuestion?
     
-    // Константа и переменная для показа алерта
-    private let alertPresenter = AlertPresenter()
-    private var alertModel: AlertModel?
+    private var alertPresenter = AlertPresenter()
     
-    private var statisticService: StatisticService = StatisticServiceImplementation()
+    private var statisticService: StatisticService? = StatisticServiceImplementation()
     
     // MARK: - Overrides Methods
     
@@ -35,8 +34,6 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         super.viewDidLoad()
         questionFactory.delegate = self
         questionFactory.requestNextQuestion()
-        
-        alertPresenter.delegate = self
         
         statisticService = StatisticServiceImplementation()
         
@@ -56,8 +53,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             self?.show(quiz: viewModel)
         }
         // Включение кнопок
-        yesButton.isEnabled = true
-        noButton.isEnabled = true
+        setButtonsEnabled(true)
+        
     }
     
     // MARK: - IB Actions
@@ -66,8 +63,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
         
         // Отключение кнопок
-        yesButton.isEnabled = false
-        noButton.isEnabled = false
+        setButtonsEnabled(false)
+        
         
         guard let currentQuestion = currentQuestion else {
             return
@@ -80,8 +77,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
         // Отключение кнопок
-        yesButton.isEnabled = false
-        noButton.isEnabled = false
+        setButtonsEnabled(false)
         
         guard let currentQuestion = currentQuestion else {
             return
@@ -91,31 +87,14 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
         showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
         
     }
-    // MARK: - Public Methods
-    // метод для показа результатов раунда квиза
-    func showAlert(quiz result: AlertModel) {
-        let alert = UIAlertController(
-            title: result.title,
-            message: result.text,
-            preferredStyle: .alert)
-        
-        let action = UIAlertAction(title: result.buttonText, style: .default) { [weak self] _ in
-            guard let self = self else { return }
-            self.currentQuestionIndex = 0
-            self.correctAnswers = 0
-            // заново показываем первый вопрос
-            questionFactory.requestNextQuestion()
-            
-        }
-        
-        //Добавление действия к алерту
-        alert.addAction(action)
-        //Показ алерта
-        self.present(alert, animated: true, completion: nil)
-    }
     
     
     // MARK: - Private Methods
+    //метод включения кнопок
+    private func setButtonsEnabled(_ isEnabled : Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
+    }
     
     // метод конвертации, который принимает моковый вопрос и возвращает вью модель для экрана вопроса
     private func convert(model: QuizQuestion) -> QuizStepViewModel {
@@ -154,6 +133,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
     // метод для перехода к следующему вопросу или результату
     private func showNextQuestionOrResults() {
         if currentQuestionIndex == questionsAmount - 1 {
+            guard let statisticService = statisticService else {return}
+            
             // идём в состояние "Результат квиза"
             // Увеличиваем счетчик квизов и сохраняем лучший результат
             statisticService.store(correct: correctAnswers, total: questionsAmount)
@@ -161,11 +142,20 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate, 
             let text = "Вы ответили на \(String(correctAnswers)) из 10 \n Количество сыгранных квизов: \(statisticService.gamesCount) \n Рекорд: \(statisticService.bestGame.correct)/\(statisticService.bestGame.total) (\(statisticService.bestGame.date.dateTimeString)) \n Средняя точность: \(String(format: "%.2f", statisticService.totalAccuracy))%"
             
             //Создание модели алерта
-            alertModel = alertPresenter.createAlert(correct: correctAnswers, total: questionsAmount, message: text)
-            guard let alertModel = alertModel else { return }
+            let alertModel = AlertModel(
+                title: "Этот раунд окончен!",
+                text: text,
+                buttonText: "Сыграть еще раз!",
+                completion: { [weak self] in
+                    guard let self = self else { return }
+                    self.currentQuestionIndex = 0
+                    self.correctAnswers = 0
+                    self.questionFactory.requestNextQuestion()
+                })
+            
             
             // Вызов метода показа модели алерта
-            self.showAlert(quiz: alertModel)
+            alertPresenter.showAlert(controller: self, alertModel: alertModel)
             
         } else {
             currentQuestionIndex += 1
