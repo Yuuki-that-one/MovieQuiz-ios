@@ -10,6 +10,10 @@ import UIKit
 final class MovieQuizPresenter {
     let questionsAmount: Int = 10
     private var currentQuestionIndex: Int = 0
+    var currentQuestion: QuizQuestion?
+    weak var viewController: MovieQuizViewController?
+
+
     
     func isLastQuestion() -> Bool {
         currentQuestionIndex == questionsAmount - 1
@@ -28,4 +32,35 @@ final class MovieQuizPresenter {
             questionNumber: "\(currentQuestionIndex + 1)/\(questionsAmount)"
         )
     }
+    
+    func setButtonsEnabled(_ isEnabled : Bool) {
+        viewController?.yesButton.isEnabled = isEnabled
+        viewController?.noButton.isEnabled = isEnabled
+    }
+    func yesButtonClicked() {
+        
+        // Отключение кнопок
+        setButtonsEnabled(false)
+        
+        
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        let givenAnswer = true
+        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        
+    }
+    func noButtonClicked() {
+        // Отключение кнопок
+        setButtonsEnabled(false)
+        
+        guard let currentQuestion = currentQuestion else {
+            return
+        }
+        let givenAnswer = false
+        
+        viewController?.showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        
+    }
 }
+

@@ -9,8 +9,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     @IBOutlet weak private var imageView: UIImageView!
     @IBOutlet weak private var textLabel: UILabel!
     @IBOutlet weak private var counterLabel: UILabel!
-    @IBOutlet weak private var yesButton: UIButton!
-    @IBOutlet weak private var noButton: UIButton!
+    @IBOutlet weak var yesButton: UIButton!
+    @IBOutlet weak var noButton: UIButton!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     
     
@@ -33,6 +33,8 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        presenter.viewController = self
         
         imageView.layer.cornerRadius = 20
         
@@ -57,7 +59,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
             self?.show(quiz: viewModel)
         }
         // Включение кнопок
-        setButtonsEnabled(true)
+        presenter.setButtonsEnabled(true)
         
     }
     
@@ -65,30 +67,15 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     // метод вызывается, когда пользователь нажимает на кнопку "Да"
     @IBAction private func yesButtonClicked(_ sender: UIButton) {
-        
-        // Отключение кнопок
-        setButtonsEnabled(false)
-        
-        
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = true
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        presenter.currentQuestion = currentQuestion
+        presenter.yesButtonClicked()
         
     }
     
     // метод вызывается, когда пользователь нажимает на кнопку "Нет"
     @IBAction private func noButtonClicked(_ sender: UIButton) {
-        // Отключение кнопок
-        setButtonsEnabled(false)
-        
-        guard let currentQuestion = currentQuestion else {
-            return
-        }
-        let givenAnswer = false
-        
-        showAnswerResult(isCorrect: givenAnswer == currentQuestion.correctAnswer)
+        presenter.currentQuestion = currentQuestion
+        presenter.noButtonClicked()
         
     }
     
@@ -113,12 +100,12 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
         activityIndicator.isHidden = true
     }
     
-    //метод включения кнопок
+/*    //метод включения кнопок
     private func setButtonsEnabled(_ isEnabled : Bool) {
         yesButton.isEnabled = isEnabled
         noButton.isEnabled = isEnabled
     }
-    
+*/
 
     // метод вывода на экран вопроса
     private func show(quiz step: QuizStepViewModel) {
@@ -130,7 +117,7 @@ final class MovieQuizViewController: UIViewController, QuestionFactoryDelegate {
     
     
     // метод, который меняет цвет рамки
-    private func showAnswerResult(isCorrect: Bool) {
+    func showAnswerResult(isCorrect: Bool) {
         if isCorrect {
             correctAnswers += 1
         }
