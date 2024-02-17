@@ -1,6 +1,21 @@
 import UIKit
 
-final class MovieQuizViewController: UIViewController {
+protocol MovieQuizViewControllerProtocol: AnyObject {
+    func show(quiz step: QuizStepViewModel)
+    func show(quiz result: QuizResultsViewModel)
+    
+    func highlightImageBorder(isCorrectAnswer: Bool)
+    
+    func showLoadingIndicator()
+    func hideLoadingIndicator()
+    func setButtonsEnabled(_ isEnabled : Bool)
+    
+    
+    func showNetworkError(message: String)
+}
+
+
+final class MovieQuizViewController: UIViewController, MovieQuizViewControllerProtocol {
     
     
     
@@ -9,16 +24,16 @@ final class MovieQuizViewController: UIViewController {
     @IBOutlet private var imageView: UIImageView!
     @IBOutlet private var textLabel: UILabel!
     @IBOutlet private var counterLabel: UILabel!
-    @IBOutlet var yesButton: UIButton!  //Кнопки блокируются через Presenter
-    @IBOutlet var noButton: UIButton!
+    @IBOutlet private var yesButton: UIButton!
+    @IBOutlet private var noButton: UIButton!
     @IBOutlet private var activityIndicator: UIActivityIndicatorView!
     
     
     // MARK: - Private Properties
-     
+    
     private var alertPresenter = AlertPresenter()
     private var presenter: MovieQuizPresenter!
-        
+    
     // MARK: - Overrides Methods
     
     override func viewDidLoad() {
@@ -45,6 +60,12 @@ final class MovieQuizViewController: UIViewController {
     }
     
     // MARK: - Public Methods
+    
+    // Метод блокировки кнопок ответа
+    func setButtonsEnabled(_ isEnabled : Bool) {
+        yesButton.isEnabled = isEnabled
+        noButton.isEnabled = isEnabled
+    }
     
     //метод показа индикатора загрузки
     func showLoadingIndicator() {
