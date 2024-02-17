@@ -7,7 +7,7 @@
 import Foundation
 import UIKit
 
-class AlertPresenter {
+final class AlertPresenter {
     
     weak var delegate: AlertPresenterDelegate?
     
@@ -20,6 +20,7 @@ class AlertPresenter {
         }
         
         alert.addAction(action)
+        alert.view.accessibilityIdentifier = "GameResultsAlert"
         controller.present(alert, animated: true, completion: nil)
     }
 }
